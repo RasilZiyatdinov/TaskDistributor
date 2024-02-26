@@ -23,22 +23,34 @@ namespace TaskDistributor
 
         public async Task StartAsync()
         {
-            while (true)
+            //запускаем все задачи в очереди
+            while (JobQueue.Count != 0)
             {
-                if (JobQueue.Count > 0)
+                var job = JobQueue.Dequeue();
+                var availableExecutor = GetAvailableExecutor(job);
+
+                if (availableExecutor != null)
                 {
-                    var job = JobQueue.Dequeue();
-                    var availableExecutor = GetAvailableExecutor(job);
-
-                    if (availableExecutor != null)
-                    {
-                         RunnedJobs.Add(ExecuteJobAsync(job, availableExecutor));
-                    }           
+                    RunnedJobs.Add(ExecuteJobAsync(job, availableExecutor));
                 }
-
+                else
+                {
+                    JobQueue.Enqueue(job);
+                }
+            }
+            //ждем выполнения всех задач
+            while (RunnedJobs.Count != 0)
+            {
                 Task.WaitAny(RunnedJobs.ToArray());
-                DisplayLoadStatus();
-                await Task.Delay(1000); 
+
+                foreach (Task<Job> job in RunnedJobs.Where(
+                        x => x.IsCompleted || x.IsCanceled || x.IsFaulted).ToList())
+                {
+                    await job;
+                    DisplayLoadStatus();
+                    await Task.Delay(1000); //задержка
+                    RunnedJobs.Remove(job);
+                }
             }
         }
 
@@ -77,7 +89,7 @@ namespace TaskDistributor
                 Console.WriteLine();
             }
 
-            Console.WriteLine($"Задач в очереди: {JobQueue.Count}");
+            Console.WriteLine($"Запущенных задач: {RunnedJobs.Count}");
         }
     }
 }

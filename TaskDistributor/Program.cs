@@ -21,7 +21,7 @@ class Program
         
         for (int i = 0; i < 10; i++)
         {
-            var job = new Job(load: random.Next(1, 6), runtime: random.Next(1, 6)); //задание нагрузки и времени выполнения задачи
+            var job = new Job(load: random.Next(1, 6), runtime: random.Next(4, 11)); //задание нагрузки и времени выполнения задачи
             loadBalancer.EnqueueJob(job);
         }
         try
