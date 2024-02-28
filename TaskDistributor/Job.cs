@@ -11,6 +11,12 @@ namespace TaskDistributor
     /// </summary>
     public class Job
     {
+        public Job(int load, int runtime)
+        {
+            Load = load;
+            Runtime = runtime;
+        }
+
         private int load;
         public int Load
         {
@@ -24,11 +30,5 @@ namespace TaskDistributor
             get { return load; }
         }
         public int Runtime { get; set; }
-
-        public Job(int load, int runtime)
-        {
-            Load = load;
-            Runtime = runtime;
-        }
     }
 }

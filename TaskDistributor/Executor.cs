@@ -11,10 +11,6 @@ namespace TaskDistributor
     /// </summary>
     public class Executor
     {
-        public int MaxJobs { get; set; }
-        public int MaxLoad { get; set; }
-        public int CurrentLoad { get; set; }
-        public List<Job> CurrentJobs { get; set; }
         public Executor(int maxJobs, int maxLoad)
         {
             MaxJobs = maxJobs;
@@ -22,6 +18,11 @@ namespace TaskDistributor
             CurrentLoad = 0;
             CurrentJobs = new List<Job>();
         }
+
+        public int MaxJobs { get; set; }
+        public int MaxLoad { get; set; }
+        public int CurrentLoad { get; set; }
+        public readonly List<Job> CurrentJobs;
 
         public bool CanTake(Job job)
         {

@@ -11,9 +11,6 @@ namespace TaskDistributor
     /// </summary>
     public class LoadBalancer
     {
-        private readonly List<Executor> Executors;
-        private readonly Queue<Job> JobQueue;
-        private List<Task<Job>> RunnedJobs;
         public LoadBalancer(List<Executor> executors)
         {
             Executors = executors;
@@ -21,21 +18,24 @@ namespace TaskDistributor
             RunnedJobs = new List<Task<Job>>();
         }
 
+        private readonly List<Executor> Executors;
+        private readonly Queue<Job> JobQueue;
+        private readonly List<Task<Job>> RunnedJobs;
+
         public async Task StartAsync()
         {
             //запускаем все задачи в очереди
             while (JobQueue.Count != 0)
             {
-                var job = JobQueue.Dequeue();
+                var job = JobQueue.Peek();
                 var availableExecutor = GetAvailableExecutor(job);
 
                 if (availableExecutor != null)
                 {
                     RunnedJobs.Add(ExecuteJobAsync(job, availableExecutor));
-                }
-                else
-                {
-                    JobQueue.Enqueue(job);
+                    JobQueue.Dequeue();
+                    DisplayLoadStatus();
+                    await Task.Delay(1000); 
                 }
             }
             //ждем выполнения всех задач
@@ -47,9 +47,9 @@ namespace TaskDistributor
                         x => x.IsCompleted || x.IsCanceled || x.IsFaulted).ToList())
                 {
                     await job;
+                    RunnedJobs.Remove(job);
                     DisplayLoadStatus();
                     await Task.Delay(1000); //задержка
-                    RunnedJobs.Remove(job);
                 }
             }
         }
@@ -90,6 +90,7 @@ namespace TaskDistributor
             }
 
             Console.WriteLine($"Запущенных задач: {RunnedJobs.Count}");
+            Console.WriteLine($"Задач в очереди: {JobQueue.Count}");
         }
     }
 }
